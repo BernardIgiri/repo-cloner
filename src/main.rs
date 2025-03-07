@@ -42,8 +42,8 @@ fn main() {
 }
 
 trait RepoCommands {
-    fn git_clone(&self, url: &str, clone_path: &PathBuf);
-    fn cd_destination(&self, clone_path: &PathBuf);
+    fn git_clone(&self, url: &str, clone_path: &Path);
+    fn cd_destination(&self, clone_path: &Path);
     fn display_success(&self);
     fn create_dir_all(&self, path: &Path) -> io::Result<()>;
 }
@@ -51,7 +51,7 @@ trait RepoCommands {
 struct SystemRepoCommands;
 
 impl RepoCommands for SystemRepoCommands {
-    fn git_clone(&self, url: &str, clone_path: &PathBuf) {
+    fn git_clone(&self, url: &str, clone_path: &Path) {
         Command::new("git")
             .arg("clone")
             .arg(url)
@@ -60,8 +60,8 @@ impl RepoCommands for SystemRepoCommands {
             .expect("Failed to clone repository");
     }
 
-    fn cd_destination(&self, clone_path: &PathBuf) {
-        println!("cd {}", clone_path.to_string_lossy().to_string());
+    fn cd_destination(&self, clone_path: &Path) {
+        println!("cd {}", clone_path.to_string_lossy());
     }
 
     fn display_success(&self) {
@@ -69,18 +69,18 @@ impl RepoCommands for SystemRepoCommands {
     }
 
     fn create_dir_all(&self, path: &Path) -> io::Result<()> {
-        fs::create_dir_all(&path)
+        fs::create_dir_all(path)
     }
 }
 
 struct DryRunRepoCommands;
 
 impl RepoCommands for DryRunRepoCommands {
-    fn git_clone(&self, url: &str, clone_path: &PathBuf) {
+    fn git_clone(&self, url: &str, clone_path: &Path) {
         println!("DRY RUN: git clone {} {}", url, clone_path.display());
     }
 
-    fn cd_destination(&self, clone_path: &PathBuf) {
+    fn cd_destination(&self, clone_path: &Path) {
         println!("DRY RUN: cd {}", clone_path.display());
     }
 
@@ -147,14 +147,16 @@ mod tests {
     }
 
     impl RepoCommands for MockRepoCommands {
-        fn git_clone(&self, url: &str, clone_path: &PathBuf) {
+        fn git_clone(&self, url: &str, clone_path: &Path) {
             self.cloned_repos
                 .borrow_mut()
-                .push((url.to_string(), clone_path.clone()));
+                .push((url.to_string(), clone_path.to_path_buf()));
         }
 
-        fn cd_destination(&self, clone_path: &PathBuf) {
-            self.navigated_paths.borrow_mut().push(clone_path.clone());
+        fn cd_destination(&self, clone_path: &Path) {
+            self.navigated_paths
+                .borrow_mut()
+                .push(clone_path.to_path_buf());
         }
 
         fn display_success(&self) {
@@ -200,7 +202,7 @@ mod tests {
         );
 
         let success = cloner.commands.success.take();
-        assert_eq!(success, true);
+        assert!(success);
     }
 
     #[test]
@@ -231,7 +233,7 @@ mod tests {
         );
 
         let success = cloner.commands.success.take();
-        assert_eq!(success, true);
+        assert!(success);
     }
 
     #[test]
@@ -262,6 +264,6 @@ mod tests {
         );
 
         let success = cloner.commands.success.take();
-        assert_eq!(success, true);
+        assert!(success);
     }
 }

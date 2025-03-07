@@ -31,7 +31,7 @@ repo-cloner [git-url] [--base-path <path>] [--dry-run]
 
 - `git-url` *(required)* – The URL of the Git repository to clone.
 - `--base-path` *(optional)* – The directory where repositories should be cloned (defaults to the current working directory).
-- `--dry-run` *(optional)* – If set, prints the commands instead of executing them.
+- `--dry-run` *(optional)* – Setting this prints the commands instead of executing them.
 
 ### Example Usages
 
